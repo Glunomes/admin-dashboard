@@ -1,54 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { getWallets } from "../api/mockApi";
-import { useEffect, useState } from "react";
-import {
-  isWalletStatus,
-  WALLET_STATUSES,
-  type WalletStatus,
-} from "../types/wallets";
+import { WalletStatuses } from "../types/wallets";
+import { PageSizes, useWalletFilters } from "../hooks/useWalletFilters";
 
 export const WalletList = () => {
-  type StatusFilter = 'all' | WalletStatus
-
-  const [search, setSearch] = useState(() => {
-    return new URLSearchParams(window.location.search).get('search') ?? ''
-  });
-  const [status, setStatus] = useState<StatusFilter>(() => {
-    const statusParam = new URLSearchParams(window.location.search).get('status')
-    return statusParam && isWalletStatus(statusParam)
-      ? statusParam
-      : 'all'
-  });
-  const [page, setPage] = useState(() => {
-    const pageParam = new URLSearchParams(window.location.search).get('page')
-    const parsedPage = Number(pageParam)
-    return Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1
-  });
-  const [pageSize, setPageSize] = useState(() => {
-    const pageSizeParam = Number(
-      new URLSearchParams(window.location.search).get('pageSize'),
-    )
-    return [5, 10, 15].includes(pageSizeParam) ? pageSizeParam : 5
-  });
-
-  useEffect(() => {
-    const syncFiltersWithUrl = () => {
-      const params = new URLSearchParams(window.location.search)
-      setSearch(params.get('search') ?? '')
-      const statusParam = params.get('status')
-      setStatus(statusParam && isWalletStatus(statusParam) ? statusParam : 'all')
-
-      const pageParam = Number(params.get('page'))
-      setPage(Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1)
-
-      const pageSizeParam = Number(params.get('pageSize'))
-      setPageSize([5, 10, 15].includes(pageSizeParam) ? pageSizeParam : 5)
-    }
-
-    window.addEventListener('popstate', syncFiltersWithUrl)
-    return () => window.removeEventListener('popstate', syncFiltersWithUrl)
-  }, [])
-
   const { data, isPending, error } = useQuery({
     queryKey: ['wallets'],
     queryFn: getWallets,
@@ -57,92 +12,19 @@ export const WalletList = () => {
   if (isPending) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const filteredWallets = data.filter((wallet) => {
-    const matchesSearch = wallet.address
-      .toLowerCase()
-      .includes(search.toLowerCase())
-    const matchesStatus = status === 'all' || wallet.status === status
-    return matchesSearch && matchesStatus
-  })
-  const totalPages = Math.ceil(filteredWallets.length / pageSize)
-  const safePage = totalPages === 0 ? 1 : Math.min(page, totalPages)
-  const startIndex = (safePage - 1) * pageSize
-  const visibleWallets = filteredWallets.slice(startIndex, startIndex + pageSize)
-
-  const updateSearch = (value: string) => {
-    setSearch(value)
-
-    const params = new URLSearchParams(window.location.search)
-
-    if (value) {
-      params.set('search', value)
-    } else {
-      params.delete('search')
-    }
-
-    params.set('page', '1')
-    setPage(1)
-    const query = params.toString()
-    window.history.replaceState(
-      null,
-      '',
-      query ? `${window.location.pathname}?${query}` : window.location.pathname,
-    )
-  }
-
-  const updatePage = (nextPage: number) => {
-    const clampedPage = Math.max(1, Math.min(nextPage, totalPages))
-    setPage(clampedPage)
-
-    const params = new URLSearchParams(window.location.search)
-    params.set('page', String(clampedPage))
-    const query = params.toString()
-    window.history.replaceState(
-      null,
-      '',
-      query ? `${window.location.pathname}?${query}` : window.location.pathname,
-    )
-  }
-
-  const updatePageSize = (value: number) => {
-    setPageSize(value)
-    setPage(1)
-
-    const params = new URLSearchParams(window.location.search)
-    params.set('pageSize', String(value))
-    params.set('page', '1')
-    const query = params.toString()
-    window.history.replaceState(
-      null,
-      '',
-      query ? `${window.location.pathname}?${query}` : window.location.pathname,
-    )
-  }
-
-  const updateStatus = (value: string) => {
-    if (value !== 'all' && !isWalletStatus(value)) {
-      return
-    }
-
-    setStatus(value)
-    setPage(1)
-
-    const params = new URLSearchParams(window.location.search)
-
-    if (value === 'all') {
-      params.delete('status')
-    } else {
-      params.set('status', value)
-    }
-
-    params.set('page', '1')
-    const query = params.toString()
-    window.history.replaceState(
-      null,
-      '',
-      query ? `${window.location.pathname}?${query}` : window.location.pathname,
-    )
-  }
+  const {
+    search,
+    status,
+    pageSize,
+    safePage,
+    totalPages,
+    filteredWallets,
+    visibleWallets,
+    updateSearch,
+    updateStatus,
+    updatePage,
+    updatePageSize,
+  } = useWalletFilters(data)
 
   return (
     <div>
@@ -163,7 +45,7 @@ export const WalletList = () => {
               className="rounded-md border border-slate-300 px-2 py-2"
             >
               <option value="all">All</option>
-              {WALLET_STATUSES.map((statusOption) => (
+              {WalletStatuses.map((statusOption) => (
                 <option key={statusOption} value={statusOption}>
                   {statusOption.charAt(0).toUpperCase() + statusOption.slice(1)}
                 </option>
@@ -177,9 +59,11 @@ export const WalletList = () => {
               onChange={(event) => updatePageSize(Number(event.target.value))}
               className="rounded-md border border-slate-300 px-2 py-2"
             >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={15}>15</option>
+              {PageSizes.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
             </select>
           </label>
         </div>

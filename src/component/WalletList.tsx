@@ -1,10 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { getWallets } from "../api/mockApi";
 import { useEffect, useState } from "react";
+import {
+  isWalletStatus,
+  WALLET_STATUSES,
+  type WalletStatus,
+} from "../types/wallets";
 
 export const WalletList = () => {
+  type StatusFilter = 'all' | WalletStatus
+
   const [search, setSearch] = useState(() => {
     return new URLSearchParams(window.location.search).get('search') ?? ''
+  });
+  const [status, setStatus] = useState<StatusFilter>(() => {
+    const statusParam = new URLSearchParams(window.location.search).get('status')
+    return statusParam && isWalletStatus(statusParam)
+      ? statusParam
+      : 'all'
   });
   const [page, setPage] = useState(() => {
     const pageParam = new URLSearchParams(window.location.search).get('page')
@@ -22,6 +35,8 @@ export const WalletList = () => {
     const syncFiltersWithUrl = () => {
       const params = new URLSearchParams(window.location.search)
       setSearch(params.get('search') ?? '')
+      const statusParam = params.get('status')
+      setStatus(statusParam && isWalletStatus(statusParam) ? statusParam : 'all')
 
       const pageParam = Number(params.get('page'))
       setPage(Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1)
@@ -42,9 +57,13 @@ export const WalletList = () => {
   if (isPending) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
 
-  const filteredWallets = data.filter((wallet) =>
-    wallet.address.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filteredWallets = data.filter((wallet) => {
+    const matchesSearch = wallet.address
+      .toLowerCase()
+      .includes(search.toLowerCase())
+    const matchesStatus = status === 'all' || wallet.status === status
+    return matchesSearch && matchesStatus
+  })
   const totalPages = Math.ceil(filteredWallets.length / pageSize)
   const safePage = totalPages === 0 ? 1 : Math.min(page, totalPages)
   const startIndex = (safePage - 1) * pageSize
@@ -100,6 +119,31 @@ export const WalletList = () => {
     )
   }
 
+  const updateStatus = (value: string) => {
+    if (value !== 'all' && !isWalletStatus(value)) {
+      return
+    }
+
+    setStatus(value)
+    setPage(1)
+
+    const params = new URLSearchParams(window.location.search)
+
+    if (value === 'all') {
+      params.delete('status')
+    } else {
+      params.set('status', value)
+    }
+
+    params.set('page', '1')
+    const query = params.toString()
+    window.history.replaceState(
+      null,
+      '',
+      query ? `${window.location.pathname}?${query}` : window.location.pathname,
+    )
+  }
+
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -110,18 +154,35 @@ export const WalletList = () => {
           placeholder="Search by address"
           className="w-full max-w-md rounded-md border border-slate-300 px-3 py-2"
         />
-        <label className="flex shrink-0 items-center gap-2">
-          Rows
-          <select
-            value={pageSize}
-            onChange={(event) => updatePageSize(Number(event.target.value))}
-            className="rounded-md border border-slate-300 px-2 py-2"
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-          </select>
-        </label>
+        <div className="flex shrink-0 items-center gap-3">
+          <label className="flex items-center gap-2">
+            Status
+            <select
+              value={status}
+              onChange={(event) => updateStatus(event.target.value)}
+              className="rounded-md border border-slate-300 px-2 py-2"
+            >
+              <option value="all">All</option>
+              {WALLET_STATUSES.map((statusOption) => (
+                <option key={statusOption} value={statusOption}>
+                  {statusOption.charAt(0).toUpperCase() + statusOption.slice(1)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex items-center gap-2">
+            Rows
+            <select
+              value={pageSize}
+              onChange={(event) => updatePageSize(Number(event.target.value))}
+              className="rounded-md border border-slate-300 px-2 py-2"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+            </select>
+          </label>
+        </div>
       </div>
       <table className="w-full border-collapse text-left">
         <thead>

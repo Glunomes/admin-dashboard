@@ -15,14 +15,23 @@ export const WalletList = () => {
   if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <ul>
-      {data.map(wallet => (
-        <li key={wallet.id}>
-          <p>Address: {wallet.address}</p>
-          <p>Balance: {wallet.balance}</p>
-          <p>Status: {wallet.status}</p>
-        </li>
-      ))}
-    </ul>
+    <table className="w-full border-collapse text-left">
+      <thead>
+        <tr className="bg-gray-300">
+          <th className="border border-slate-300 px-4 py-2">Address</th>
+          <th className="border border-slate-300 px-4 py-2">Balance</th>
+          <th className="border border-slate-300 px-4 py-2">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((wallet) => (
+          <tr key={wallet.id}>
+            <td className="border border-slate-300 px-4 py-2">{wallet.address}</td>
+            <td className="border border-slate-300 px-4 py-2">{wallet.balance}</td>
+            <td className="border border-slate-300 px-4 py-2">{wallet.status}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }

@@ -10,6 +10,11 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
   "bugs": {
     "url": "https://github.com/Glunomes/admin-dashboard/issues"
   },

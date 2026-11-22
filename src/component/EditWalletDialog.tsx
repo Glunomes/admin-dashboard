@@ -1,6 +1,18 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { WalletStatuses, type Wallet } from '../types/wallets'
+import {
+  isWalletStatus,
+  WalletStatuses,
+  type Wallet,
+} from '../types/wallets'
 import type { User } from '../types/users'
+import type { SubmitEvent } from 'react'
+import { useState } from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  ApiError,
+  updateWalletAndUser,
+  type UpdateDataInput,
+} from '../api/mockApi'
 
 type EditWalletDialogProps = {
   wallet: Wallet
@@ -8,8 +20,91 @@ type EditWalletDialogProps = {
 }
 
 export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
+  const queryClient = useQueryClient()
+  const [open, setOpen] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateDataInput) =>
+      updateWalletAndUser(wallet.id, data),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['wallets'] }),
+        queryClient.invalidateQueries({ queryKey: ['users'] }),
+      ])
+      setOpen(false)
+    },
+  })
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setFormError(null)
+
+    const formData = new FormData(event.currentTarget)
+    const getStringField = (name: string): string | null => {
+      const value = formData.get(name)
+      return typeof value === 'string' ? value : null
+    }
+
+    const name = getStringField('userName')
+    const email = getStringField('userEmail')
+    const address = getStringField('address')
+    const balanceValue = getStringField('balance')
+    const statusValue = getStringField('status')
+
+    if (
+      name === null ||
+      email === null ||
+      address === null ||
+      balanceValue === null ||
+      statusValue === null
+    ) {
+      setFormError('Could not read all form fields. Please check the form and try again.')
+      return
+    }
+
+    const status = statusValue
+    if (!isWalletStatus(status)) {
+      setFormError('Please select a valid wallet status.')
+      return
+    }
+
+    const balance = Number(balanceValue)
+    if (!Number.isFinite(balance) || balance < 0) {
+      setFormError('Balance must be a valid non-negative number.')
+      return
+    }
+
+    const data = {
+      user: {
+        name: name.trim(),
+        email: email.trim(),
+      },
+      wallet: {
+        address: address.trim(),
+        balance,
+        status,
+      },
+    }
+
+    updateMutation.mutate(data)
+  }
+
+  const mutationErrorMessage = updateMutation.error
+    ? updateMutation.error instanceof ApiError
+      ? `${updateMutation.error.message} (HTTP ${updateMutation.error.status})`
+      : updateMutation.error.message
+    : null
+
   return (
-    <Dialog.Root>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!updateMutation.isPending) {
+          setOpen(nextOpen)
+        }
+      }}
+    >
       <Dialog.Trigger asChild>
         <button
           type="button"
@@ -26,12 +121,12 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
             Edit wallet
           </Dialog.Title>
           <Dialog.Description className="mt-1 text-sm text-slate-600">
-            Update the wallet details. Saving will be added next.
+            Update the user and wallet details
           </Dialog.Description>
 
           <form
             className="mt-4 space-y-4"
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={handleSubmit}
           >
             <label className="block space-y-1">
               <span className="text-sm font-medium text-slate-700">
@@ -111,11 +206,17 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
               </Dialog.Close>
               <button
                 type="submit"
-                className="rounded-md bg-slate-900 px-4 py-2 text-white"
+                disabled={updateMutation.isPending}
+                className="rounded-md bg-slate-900 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Save
+                {updateMutation.isPending ? 'Saving...' : 'Save'}
               </button>
             </div>
+            {(formError || mutationErrorMessage) && (
+              <p role="alert" className="text-sm text-red-600">
+                {formError ?? mutationErrorMessage}
+              </p>
+            )}
           </form>
 
           <Dialog.Close asChild>

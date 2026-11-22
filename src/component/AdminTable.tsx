@@ -44,7 +44,7 @@ export function AdminTable({ wallets, users }: AdminTableProps) {
                 <td className="border border-slate-300 px-4 py-2">
                   {wallet.status}
                 </td>
-                <td className="border border-slate-300 px-4 py-2">
+                <td className="border border-slate-300 p-0">
                   <EditWalletDialog wallet={wallet} />
                 </td>
               </tr>

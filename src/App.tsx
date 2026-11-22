@@ -1,4 +1,4 @@
-import { WalletList } from "./component/WalletList";
+import { AdminList } from "./component/AdminList";
 
 export default function App() {
   return (
@@ -8,7 +8,7 @@ export default function App() {
         <p className="text-slate-600 text-lg">Manage users and their wallets in one place.</p>
         <section className="p-4 md:p-6 mt-8 bg-amber-50 rounded-md border border-slate-500">
           <h2>Users & Wallets</h2>
-          <WalletList/>
+          <AdminList/>
         </section>
       </div>
     </main>

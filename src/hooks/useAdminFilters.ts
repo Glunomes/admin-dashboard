@@ -4,6 +4,7 @@ import {
   type Wallet,
   type WalletStatus,
 } from '../types/wallets'
+import type { User } from '../types/users'
 
 export type StatusFilter = 'all' | WalletStatus
 
@@ -45,7 +46,7 @@ function replaceUrlParams(params: URLSearchParams) {
   )
 }
 
-export function useWalletFilters(wallets: Wallet[]) {
+export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
   const [search, setSearch] = useState(getInitialSearch)
   const [status, setStatus] = useState<StatusFilter>(getInitialStatus)
   const [page, setPage] = useState(getInitialPage)
@@ -81,10 +82,14 @@ export function useWalletFilters(wallets: Wallet[]) {
     return () => window.removeEventListener('popstate', syncFiltersWithUrl)
   }, [])
 
+  const usersById = new Map(users.map((user) => [user.id, user]))
+  const normalizedSearch = search.toLowerCase()
+
   const filteredWallets = wallets.filter((wallet) => {
-    const matchesSearch = wallet.address
-      .toLowerCase()
-      .includes(search.toLowerCase())
+    const user = usersById.get(wallet.userId)
+    const matchesSearch =
+      wallet.address.toLowerCase().includes(normalizedSearch) ||
+      (user?.name.toLowerCase().includes(normalizedSearch) ?? false)
     const matchesStatus = status === 'all' || wallet.status === status
     return matchesSearch && matchesStatus
   })

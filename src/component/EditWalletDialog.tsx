@@ -1,11 +1,13 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { WalletStatuses, type Wallet } from '../types/wallets'
+import type { User } from '../types/users'
 
 type EditWalletDialogProps = {
   wallet: Wallet
+  user?: User
 }
 
-export function EditWalletDialog({ wallet }: EditWalletDialogProps) {
+export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>
@@ -28,23 +30,54 @@ export function EditWalletDialog({ wallet }: EditWalletDialogProps) {
           </Dialog.Description>
 
           <form
-            className="mt-5 space-y-4"
+            className="mt-4 space-y-4"
             onSubmit={(event) => event.preventDefault()}
           >
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-slate-700">Address</span>
+              <span className="text-sm font-medium text-slate-700">
+                User name
+              </span>
+              <input
+                name="userName"
+                required
+                defaultValue={user?.name ?? ''}
+                className="w-full rounded-md border border-slate-300 px-3 py-2"
+              />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-slate-700">
+                User email
+              </span>
+              <input
+                name="userEmail"
+                type="email"
+                required
+                defaultValue={user?.email ?? ''}
+                className="w-full rounded-md border border-slate-300 px-3 py-2"
+              />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="text-sm font-medium text-slate-700">
+                Address
+              </span>
               <input
                 name="address"
+                required
                 defaultValue={wallet.address}
                 className="w-full rounded-md border border-slate-300 px-3 py-2"
               />
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-slate-700">Balance</span>
+              <span className="text-sm font-medium text-slate-700">
+                Balance
+              </span>
               <input
                 name="balance"
                 type="number"
+                required
                 min="0"
                 step="0.01"
                 defaultValue={wallet.balance}

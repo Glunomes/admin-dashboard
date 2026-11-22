@@ -1,19 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
-import { getUsers, getWallets } from "../api/mockApi";
-import { useAdminFilters } from "../hooks/useAdminFilters";
-import { AdminFilters } from "./AdminFilters";
-import { AdminPagination } from "./AdminPagination";
-import { AdminTable } from "./AdminTable";
+import { useQuery } from '@tanstack/react-query'
+import { getUsers, getWallets } from '../api/mockApi'
+import { useAdminFilters } from '../hooks/useAdminFilters'
+import { AdminFilters } from './AdminFilters'
+import { AdminPagination } from './AdminPagination'
+import { AdminTable } from './AdminTable'
 
 export const AdminList = () => {
   const walletsQuery = useQuery({
     queryKey: ['wallets'],
     queryFn: getWallets,
-  });
+  })
   const usersQuery = useQuery({
     queryKey: ['users'],
     queryFn: getUsers,
-  });
+  })
   const filters = useAdminFilters(
     walletsQuery.data ?? [],
     usersQuery.data ?? [],

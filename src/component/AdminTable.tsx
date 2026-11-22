@@ -45,14 +45,17 @@ export function AdminTable({ wallets, users }: AdminTableProps) {
                   {wallet.status}
                 </td>
                 <td className="border border-slate-300 p-0">
-                  <EditWalletDialog wallet={wallet} />
+                  <EditWalletDialog wallet={wallet} user={user} />
                 </td>
               </tr>
             )
           })
         ) : (
           <tr>
-            <td colSpan={6} className="border border-slate-300 px-4 py-6 text-center">
+            <td
+              colSpan={6}
+              className="border border-slate-300 px-4 py-6 text-center"
+            >
               No wallets found
             </td>
           </tr>

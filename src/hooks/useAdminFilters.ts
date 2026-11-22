@@ -60,9 +60,7 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
       )
 
       const parsedPage = Number(params.get('page'))
-      setPage(
-        Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
-      )
+      setPage(Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1)
 
       const parsedPageSize = Number(params.get('pageSize'))
       setPageSize(

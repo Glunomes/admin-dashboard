@@ -21,9 +21,7 @@ export function AdminFilters({ filters }: AdminFiltersProps) {
           Status
           <select
             value={filters.status}
-            onChange={(event) =>
-              filters.updateStatus(event.target.value)
-            }
+            onChange={(event) => filters.updateStatus(event.target.value)}
             className="rounded-md border border-slate-300 px-2 py-2"
           >
             <option value="all">All</option>

@@ -3,11 +3,9 @@ import { mockWallets } from '../data/mockWallets'
 import type { User } from '../types/users'
 import type { Wallet } from '../types/wallets'
 
-const MOCK_DELAY_MS = 400
-
-function waitForMockResponse(): Promise<void> {
+function waitForMockResponse() {
   return new Promise((resolve) => {
-    setTimeout(resolve, MOCK_DELAY_MS)
+    setTimeout(resolve, 400)
   })
 }
 

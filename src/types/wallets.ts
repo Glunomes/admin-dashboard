@@ -6,9 +6,9 @@ export function isWalletStatus(value: string): value is WalletStatus {
 }
 
 export interface Wallet {
-  id: string;
-  userId: string;
-  address: string;
-  balance: number;
-  status: WalletStatus;
-};
+  id: string
+  userId: string
+  address: string
+  balance: number
+  status: WalletStatus
+}

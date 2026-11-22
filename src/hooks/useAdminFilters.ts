@@ -30,11 +30,7 @@ function getInitialPageSize() {
   const parsedPageSize = Number(
     new URLSearchParams(window.location.search).get('pageSize'),
   )
-  return PageSizes.includes(
-    parsedPageSize as (typeof PageSizes)[number],
-  )
-    ? (parsedPageSize as (typeof PageSizes)[number])
-    : 5
+  return PageSizes.find((pageSize) => pageSize === parsedPageSize) ?? 5
 }
 
 function replaceUrlParams(params: URLSearchParams) {
@@ -70,11 +66,7 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
 
       const parsedPageSize = Number(params.get('pageSize'))
       setPageSize(
-        PageSizes.includes(
-          parsedPageSize as (typeof PageSizes)[number],
-        )
-          ? (parsedPageSize as (typeof PageSizes)[number])
-          : 5,
+        PageSizes.find((pageSize) => pageSize === parsedPageSize) ?? 5,
       )
     }
 
@@ -146,11 +138,11 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
   }
 
   const updatePageSize = (value: number) => {
-    if (!PageSizes.includes(value as (typeof PageSizes)[number])) {
+    const nextPageSize = PageSizes.find((pageSize) => pageSize === value)
+    if (!nextPageSize) {
       return
     }
 
-    const nextPageSize = value as (typeof PageSizes)[number]
     setPageSize(nextPageSize)
     setPage(1)
 

@@ -8,17 +8,18 @@ import { AdminFilters } from './AdminFilters'
 import { AdminPagination } from './AdminPagination'
 import { AdminTable } from './AdminTable'
 import { CreateWalletDialog } from './CreateWalletDialog'
+import { adminQueryKeys } from '../utils/queryKeys'
 
 export const AdminList = () => {
   const listParams = getAdminFilterParamsFromUrl()
 
   const walletsQuery = useQuery({
-    queryKey: ['wallets', listParams],
+    queryKey: adminQueryKeys.walletList(listParams),
     queryFn: getWallets,
     placeholderData: (previousData) => previousData,
   })
   const usersQuery = useQuery({
-    queryKey: ['users', listParams],
+    queryKey: adminQueryKeys.userList(listParams),
     queryFn: getUsers,
     placeholderData: (previousData) => previousData,
   })

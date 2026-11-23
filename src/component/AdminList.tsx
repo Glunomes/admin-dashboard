@@ -28,17 +28,18 @@ export const AdminList = () => {
     usersQuery.data ?? [],
   )
 
-  if (
-    (walletsQuery.isPending && !walletsQuery.data) ||
-    (usersQuery.isPending && !usersQuery.data)
-  ) {
+  if (!walletsQuery.data || !usersQuery.data) {
+    if (walletsQuery.error) {
+      return <div>Error: {walletsQuery.error.message}</div>
+    }
+    if (usersQuery.error) {
+      return <div>Error: {usersQuery.error.message}</div>
+    }
     return <div>Loading...</div>
   }
-  if (walletsQuery.error) {
-    return <div>Error: {walletsQuery.error.message}</div>
-  }
-  if (usersQuery.error) {
-    return <div>Error: {usersQuery.error.message}</div>
+  const listError = walletsQuery.error ?? usersQuery.error
+  if (listError) {
+    return <div>Error: {listError.message}</div>
   }
 
   return (

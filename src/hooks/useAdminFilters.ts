@@ -10,36 +10,28 @@ export type StatusFilter = 'all' | WalletStatus
 
 export const PageSizes = [5, 10, 15] as const
 
-function getInitialSearch() {
-  return new URLSearchParams(window.location.search).get('search') ?? ''
+export type AdminFilterParams = {
+  search: string
+  status: StatusFilter
+  page: number
+  pageSize: (typeof PageSizes)[number]
 }
 
-function getInitialStatus(): StatusFilter {
-  const status = new URLSearchParams(window.location.search).get('status')
-  return status && isWalletStatus(status) ? status : 'all'
-}
+export function getAdminFilterParams(): AdminFilterParams {
+  const params = new URLSearchParams(window.location.search)
+  const search = params.get('search') ?? ''
 
-function getInitialPage() {
-  const parsedPage = Number(
-    new URLSearchParams(window.location.search).get('page'),
-  )
-  return Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1
-}
+  const statusParam = params.get('status')
+  const status =
+    statusParam && isWalletStatus(statusParam) ? statusParam : 'all'
 
-function getInitialPageSize() {
-  const parsedPageSize = Number(
-    new URLSearchParams(window.location.search).get('pageSize'),
-  )
-  return PageSizes.find((pageSize) => pageSize === parsedPageSize) ?? 5
-}
+  const parsedPage = Number(params.get('page'))
+  const page = Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1
 
-export function getAdminFilterParamsFromUrl() {
-  return {
-    search: getInitialSearch(),
-    status: getInitialStatus(),
-    page: getInitialPage(),
-    pageSize: getInitialPageSize(),
-  }
+  const parsedPageSize = Number(params.get('pageSize'))
+  const pageSize = PageSizes.find((size) => size === parsedPageSize) ?? 5
+
+  return { search, status, page, pageSize }
 }
 
 function writeUrlParams(params: URLSearchParams, replace = false) {
@@ -47,6 +39,7 @@ function writeUrlParams(params: URLSearchParams, replace = false) {
   const writeHistory = replace
     ? window.history.replaceState
     : window.history.pushState
+
   writeHistory.call(
     window.history,
     null,
@@ -56,31 +49,23 @@ function writeUrlParams(params: URLSearchParams, replace = false) {
 }
 
 export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
-  const [search, setSearch] = useState(getInitialSearch)
-  const [status, setStatus] = useState<StatusFilter>(getInitialStatus)
-  const [page, setPage] = useState(getInitialPage)
-  const [pageSize, setPageSize] =
-    useState<(typeof PageSizes)[number]>(getInitialPageSize)
+  const initialParams = getAdminFilterParams()
+  const [search, setSearch] = useState(initialParams.search)
+  const [status, setStatus] = useState<StatusFilter>(initialParams.status)
+  const [page, setPage] = useState(initialParams.page)
+  const [pageSize, setPageSize] = useState<(typeof PageSizes)[number]>(
+    initialParams.pageSize,
+  )
   const searchHistoryEntryCreated = useRef(false)
 
   useEffect(() => {
     const syncFiltersWithUrl = () => {
+      const params = getAdminFilterParams()
       searchHistoryEntryCreated.current = false
-      const params = new URLSearchParams(window.location.search)
-      setSearch(params.get('search') ?? '')
-
-      const statusParam = params.get('status')
-      setStatus(
-        statusParam && isWalletStatus(statusParam) ? statusParam : 'all',
-      )
-
-      const parsedPage = Number(params.get('page'))
-      setPage(Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1)
-
-      const parsedPageSize = Number(params.get('pageSize'))
-      setPageSize(
-        PageSizes.find((pageSize) => pageSize === parsedPageSize) ?? 5,
-      )
+      setSearch(params.search)
+      setStatus(params.status)
+      setPage(params.page)
+      setPageSize(params.pageSize)
     }
 
     window.addEventListener('popstate', syncFiltersWithUrl)
@@ -158,7 +143,7 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
   }
 
   const updatePageSize = (value: number) => {
-    const nextPageSize = PageSizes.find((pageSize) => pageSize === value)
+    const nextPageSize = PageSizes.find((size) => size === value)
     if (!nextPageSize) {
       return
     }

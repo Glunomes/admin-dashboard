@@ -1,11 +1,6 @@
-import type { StatusFilter } from '../hooks/useAdminFilters'
+import type { AdminFilterParams } from '../hooks/useAdminFilters'
 
-export type AdminListParams = {
-  search: string
-  status: StatusFilter
-  page: number
-  pageSize: number
-}
+export type AdminListParams = AdminFilterParams
 
 export const adminQueryKeys = {
   wallets: ['wallets'] as const,

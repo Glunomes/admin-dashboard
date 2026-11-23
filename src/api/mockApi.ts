@@ -8,6 +8,8 @@ export type UpdateDataInput = {
   wallet: Pick<Wallet, 'address' | 'balance' | 'status'>
 }
 
+export type CreateDataInput = UpdateDataInput
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -27,6 +29,12 @@ function waitForMockResponse(): Promise<void> {
   })
 }
 
+function simulateServerError(address: string) {
+  if (address === '500') {
+    throw new ApiError('Simulated server error', 500)
+  }
+}
+
 export async function getUsers(): Promise<User[]> {
   await waitForMockResponse()
   return users.map((user) => ({ ...user }))
@@ -42,10 +50,7 @@ export async function updateWalletAndUser(
   data: UpdateDataInput,
 ): Promise<{ user: User; wallet: Wallet }> {
   await waitForMockResponse()
-
-  if (data.wallet.address === '500') {
-    throw new ApiError('Simulated server error', 500)
-  }
+  simulateServerError(data.wallet.address)
 
   const wallet = wallets.find((currentWallet) => currentWallet.id === walletId)
   if (!wallet) {
@@ -54,7 +59,9 @@ export async function updateWalletAndUser(
 
   const user = users.find((currentUser) => currentUser.id === wallet.userId)
   if (!user) {
-    throw new Error(`User "${wallet.userId}" for wallet "${walletId}" was not found`)
+    throw new Error(
+      `User "${wallet.userId}" for wallet "${walletId}" was not found`,
+    )
   }
 
   const updatedWallet: Wallet = {
@@ -76,5 +83,30 @@ export async function updateWalletAndUser(
   return {
     user: { ...updatedUser },
     wallet: { ...updatedWallet },
+  }
+}
+
+export async function createWalletAndUser(
+  data: CreateDataInput,
+): Promise<{ user: User; wallet: Wallet }> {
+  await waitForMockResponse()
+  simulateServerError(data.wallet.address)
+
+  const user: User = {
+    id: `user-${crypto.randomUUID()}`,
+    ...data.user,
+  }
+  const wallet: Wallet = {
+    id: `wallet-${crypto.randomUUID()}`,
+    userId: user.id,
+    ...data.wallet,
+  }
+
+  users = [...users, user]
+  wallets = [...wallets, wallet]
+
+  return {
+    user: { ...user },
+    wallet: { ...wallet },
   }
 }

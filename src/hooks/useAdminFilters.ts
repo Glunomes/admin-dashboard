@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   isWalletStatus,
   type Wallet,
@@ -33,9 +33,13 @@ function getInitialPageSize() {
   return PageSizes.find((pageSize) => pageSize === parsedPageSize) ?? 5
 }
 
-function replaceUrlParams(params: URLSearchParams) {
+function writeUrlParams(params: URLSearchParams, replace = false) {
   const query = params.toString()
-  window.history.replaceState(
+  const writeHistory = replace
+    ? window.history.replaceState
+    : window.history.pushState
+  writeHistory.call(
+    window.history,
     null,
     '',
     query ? `${window.location.pathname}?${query}` : window.location.pathname,
@@ -48,9 +52,11 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
   const [page, setPage] = useState(getInitialPage)
   const [pageSize, setPageSize] =
     useState<(typeof PageSizes)[number]>(getInitialPageSize)
+  const searchHistoryEntryCreated = useRef(false)
 
   useEffect(() => {
     const syncFiltersWithUrl = () => {
+      searchHistoryEntryCreated.current = false
       const params = new URLSearchParams(window.location.search)
       setSearch(params.get('search') ?? '')
 
@@ -104,7 +110,12 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
 
     params.set('page', '1')
     setPage(1)
-    replaceUrlParams(params)
+    writeUrlParams(params, searchHistoryEntryCreated.current)
+    searchHistoryEntryCreated.current = true
+  }
+
+  const beginSearchEdit = () => {
+    searchHistoryEntryCreated.current = false
   }
 
   const updateStatus = (value: string) => {
@@ -112,6 +123,7 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
       return
     }
 
+    searchHistoryEntryCreated.current = false
     setStatus(value)
     setPage(1)
 
@@ -123,16 +135,17 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
     }
 
     params.set('page', '1')
-    replaceUrlParams(params)
+    writeUrlParams(params)
   }
 
   const updatePage = (nextPage: number) => {
     const clampedPage = Math.max(1, Math.min(nextPage, totalPages))
+    searchHistoryEntryCreated.current = false
     setPage(clampedPage)
 
     const params = new URLSearchParams(window.location.search)
     params.set('page', String(clampedPage))
-    replaceUrlParams(params)
+    writeUrlParams(params)
   }
 
   const updatePageSize = (value: number) => {
@@ -141,13 +154,14 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
       return
     }
 
+    searchHistoryEntryCreated.current = false
     setPageSize(nextPageSize)
     setPage(1)
 
     const params = new URLSearchParams(window.location.search)
     params.set('pageSize', String(nextPageSize))
     params.set('page', '1')
-    replaceUrlParams(params)
+    writeUrlParams(params)
   }
 
   return {
@@ -159,6 +173,7 @@ export function useAdminFilters(wallets: Wallet[], users: User[] = []) {
     filteredWallets,
     visibleWallets,
     updateSearch,
+    beginSearchEdit,
     updateStatus,
     updatePage,
     updatePageSize,

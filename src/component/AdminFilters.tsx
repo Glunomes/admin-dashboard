@@ -12,6 +12,7 @@ export function AdminFilters({ filters }: AdminFiltersProps) {
       <input
         type="search"
         value={filters.search}
+        onFocus={filters.beginSearchEdit}
         onChange={(event) => filters.updateSearch(event.target.value)}
         placeholder="Search by address or user"
         className="w-full max-w-md rounded-md border border-slate-300 px-3 py-2"

@@ -4,6 +4,7 @@ import { useAdminFilters } from '../hooks/useAdminFilters'
 import { AdminFilters } from './AdminFilters'
 import { AdminPagination } from './AdminPagination'
 import { AdminTable } from './AdminTable'
+import { CreateWalletDialog } from './CreateWalletDialog'
 
 export const AdminList = () => {
   const walletsQuery = useQuery({
@@ -31,6 +32,9 @@ export const AdminList = () => {
 
   return (
     <div>
+      <div className="mb-4 flex justify-end">
+        <CreateWalletDialog />
+      </div>
       <AdminFilters filters={filters} />
       <AdminTable wallets={filters.visibleWallets} users={usersQuery.data} />
       {filters.filteredWallets.length > 0 && (

@@ -1,18 +1,10 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import {
-  isWalletStatus,
-  WalletStatuses,
-  type Wallet,
-} from '../types/wallets'
+import { isWalletStatus, WalletStatuses, type Wallet } from '../types/wallets'
 import type { User } from '../types/users'
 import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  ApiError,
-  updateWalletAndUser,
-  type UpdateDataInput,
-} from '../api/mockApi'
+import { updateWalletAndUser, type UpdateDataInput } from '../api/mockApi'
 
 type EditWalletDialogProps = {
   wallet: Wallet
@@ -25,8 +17,7 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
   const [formError, setFormError] = useState<string | null>(null)
 
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateDataInput) =>
-      updateWalletAndUser(wallet.id, data),
+    mutationFn: (data: UpdateDataInput) => updateWalletAndUser(wallet.id, data),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['wallets'] }),
@@ -59,7 +50,9 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
       balanceValue === null ||
       statusValue === null
     ) {
-      setFormError('Could not read all form fields. Please check the form and try again.')
+      setFormError(
+        'Could not read all form fields. Please check the form and try again.',
+      )
       return
     }
 
@@ -90,11 +83,7 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
     updateMutation.mutate(data)
   }
 
-  const mutationErrorMessage = updateMutation.error
-    ? updateMutation.error instanceof ApiError
-      ? `${updateMutation.error.message} (HTTP ${updateMutation.error.status})`
-      : updateMutation.error.message
-    : null
+  const mutationErrorMessage = updateMutation.error?.message ?? null
 
   return (
     <Dialog.Root
@@ -124,10 +113,7 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
             Update the user and wallet details
           </Dialog.Description>
 
-          <form
-            className="mt-4 space-y-4"
-            onSubmit={handleSubmit}
-          >
+          <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
             <label className="block space-y-1">
               <span className="text-sm font-medium text-slate-700">
                 User name

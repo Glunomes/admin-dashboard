@@ -25,7 +25,7 @@ let wallets = mockWallets.map((wallet) => ({ ...wallet }))
 
 function waitForMockResponse(): Promise<void> {
   return new Promise((resolve) => {
-    setTimeout(resolve, 400)
+    setTimeout(resolve, 800)
   })
 }
 

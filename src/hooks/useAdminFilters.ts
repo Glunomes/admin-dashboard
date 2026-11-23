@@ -33,6 +33,15 @@ function getInitialPageSize() {
   return PageSizes.find((pageSize) => pageSize === parsedPageSize) ?? 5
 }
 
+export function getAdminFilterParamsFromUrl() {
+  return {
+    search: getInitialSearch(),
+    status: getInitialStatus(),
+    page: getInitialPage(),
+    pageSize: getInitialPageSize(),
+  }
+}
+
 function writeUrlParams(params: URLSearchParams, replace = false) {
   const query = params.toString()
   const writeHistory = replace

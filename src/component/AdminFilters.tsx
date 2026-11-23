@@ -4,19 +4,29 @@ import { PageSizes } from '../hooks/useAdminFilters'
 
 type AdminFiltersProps = {
   filters: ReturnType<typeof useAdminFilters>
+  isFetching: boolean
 }
 
-export function AdminFilters({ filters }: AdminFiltersProps) {
+export function AdminFilters({ filters, isFetching }: AdminFiltersProps) {
   return (
     <div className="mb-4 flex items-center justify-between gap-3">
-      <input
-        type="search"
-        value={filters.search}
-        onFocus={filters.beginSearchEdit}
-        onChange={(event) => filters.updateSearch(event.target.value)}
-        placeholder="Search by address or user"
-        className="w-full max-w-md rounded-md border border-slate-300 px-3 py-2"
-      />
+      <div className="flex min-w-0 max-w-md flex-1 items-center gap-3">
+        <input
+          type="search"
+          value={filters.search}
+          onFocus={filters.beginSearchEdit}
+          onChange={(event) => filters.updateSearch(event.target.value)}
+          placeholder="Search by address or user"
+          className="min-w-0 flex-1 rounded-md border border-slate-300 px-3 py-2"
+        />
+        <div
+          role="status"
+          className="w-20 shrink-0 text-sm text-slate-500"
+          aria-live="polite"
+        >
+          {isFetching ? 'Updating...' : ''}
+        </div>
+      </div>
       <div className="flex shrink-0 items-center gap-3">
         <label className="flex items-center gap-2">
           Status

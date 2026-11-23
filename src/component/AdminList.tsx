@@ -1,26 +1,36 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUsers, getWallets } from '../api/mockApi'
-import { useAdminFilters } from '../hooks/useAdminFilters'
+import {
+  getAdminFilterParamsFromUrl,
+  useAdminFilters,
+} from '../hooks/useAdminFilters'
 import { AdminFilters } from './AdminFilters'
 import { AdminPagination } from './AdminPagination'
 import { AdminTable } from './AdminTable'
 import { CreateWalletDialog } from './CreateWalletDialog'
 
 export const AdminList = () => {
+  const listParams = getAdminFilterParamsFromUrl()
+
   const walletsQuery = useQuery({
-    queryKey: ['wallets'],
+    queryKey: ['wallets', listParams],
     queryFn: getWallets,
+    placeholderData: (previousData) => previousData,
   })
   const usersQuery = useQuery({
-    queryKey: ['users'],
+    queryKey: ['users', listParams],
     queryFn: getUsers,
+    placeholderData: (previousData) => previousData,
   })
   const filters = useAdminFilters(
     walletsQuery.data ?? [],
     usersQuery.data ?? [],
   )
 
-  if (walletsQuery.isPending || usersQuery.isPending) {
+  if (
+    (walletsQuery.isPending && !walletsQuery.data) ||
+    (usersQuery.isPending && !usersQuery.data)
+  ) {
     return <div>Loading...</div>
   }
   if (walletsQuery.error) {
@@ -35,7 +45,10 @@ export const AdminList = () => {
       <div className="mb-4 flex justify-end">
         <CreateWalletDialog />
       </div>
-      <AdminFilters filters={filters} />
+      <AdminFilters
+        filters={filters}
+        isFetching={walletsQuery.isFetching || usersQuery.isFetching}
+      />
       <AdminTable wallets={filters.visibleWallets} users={usersQuery.data} />
       {filters.filteredWallets.length > 0 && (
         <AdminPagination

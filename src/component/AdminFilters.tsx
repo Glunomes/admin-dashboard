@@ -24,7 +24,15 @@ export function AdminFilters({ filters, isFetching }: AdminFiltersProps) {
           className="w-20 shrink-0 text-sm text-slate-500"
           aria-live="polite"
         >
-          {isFetching ? 'Updating...' : ''}
+          {isFetching ? (
+            <span className="inline-flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="size-3 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700"
+              />
+              Updating
+            </span>
+          ) : null}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-3">

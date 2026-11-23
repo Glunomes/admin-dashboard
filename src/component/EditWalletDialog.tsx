@@ -25,6 +25,9 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
       onOpenChange={(nextOpen) => {
         if (!updateMutation.isPending) {
           setOpen(nextOpen)
+          if (nextOpen) {
+            updateMutation.reset()
+          }
         }
       }}
     >

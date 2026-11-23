@@ -2,11 +2,8 @@ import * as Dialog from '@radix-ui/react-dialog'
 import type { SubmitEvent } from 'react'
 import { useState } from 'react'
 import type { CreateDataInput } from '../api/mockApi'
-import {
-  isWalletStatus,
-  WalletStatuses,
-  type WalletStatus,
-} from '../types/wallets'
+import { WalletStatuses, type WalletStatus } from '../types/wallets'
+import { parseWalletForm } from '../utils/parseWalletForm'
 
 export type WalletFormValues = {
   userName: string
@@ -38,52 +35,14 @@ export function WalletForm({
     setFormError(null)
 
     const formData = new FormData(event.currentTarget)
-    const getStringField = (name: string): string | null => {
-      const value = formData.get(name)
-      return typeof value === 'string' ? value : null
-    }
+    const result = parseWalletForm(formData)
 
-    const name = getStringField('userName')
-    const email = getStringField('userEmail')
-    const address = getStringField('address')
-    const balanceValue = getStringField('balance')
-    const statusValue = getStringField('status')
-
-    if (
-      name === null ||
-      email === null ||
-      address === null ||
-      balanceValue === null ||
-      statusValue === null
-    ) {
-      setFormError(
-        'Could not read all form fields. Please check the form and try again.',
-      )
+    if (!result.data) {
+      setFormError(result.error)
       return
     }
 
-    if (!isWalletStatus(statusValue)) {
-      setFormError('Please select a valid wallet status.')
-      return
-    }
-
-    const balance = Number(balanceValue)
-    if (!Number.isFinite(balance) || balance < 0) {
-      setFormError('Balance must be a valid non-negative number.')
-      return
-    }
-
-    onSubmit({
-      user: {
-        name: name.trim(),
-        email: email.trim(),
-      },
-      wallet: {
-        address: address.trim(),
-        balance,
-        status: statusValue,
-      },
-    })
+    onSubmit(result.data)
   }
 
   return (

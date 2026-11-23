@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-export function useSaveWalletMutation<TInput, TOutput>(
-  mutationFn: (input: TInput) => Promise<TOutput>,
+export function useSaveWalletMutation<TInput>(
+  mutationFn: (input: TInput) => Promise<unknown>,
   onSuccess?: () => void,
 ) {
   const queryClient = useQueryClient()

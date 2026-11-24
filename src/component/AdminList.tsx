@@ -1,9 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUsers, getWallets } from '../api/mockApi'
-import {
-  getAdminFilterParamsFromUrl,
-  useAdminFilters,
-} from '../hooks/useAdminFilters'
+import { getAdminFilterParams, useAdminFilters } from '../hooks/useAdminFilters'
 import { AdminFilters } from './AdminFilters'
 import { AdminPagination } from './AdminPagination'
 import { AdminTable } from './AdminTable'
@@ -11,35 +8,36 @@ import { CreateWalletDialog } from './CreateWalletDialog'
 import { adminQueryKeys } from '../utils/queryKeys'
 
 export const AdminList = () => {
-  const listParams = getAdminFilterParamsFromUrl()
+  const listParams = getAdminFilterParams()
 
-  const walletsQuery = useQuery({
+  const {
+    data: wallets,
+    error: walletsError,
+    isFetching: isFetchingWallets,
+  } = useQuery({
     queryKey: adminQueryKeys.walletList(listParams),
     queryFn: getWallets,
     placeholderData: (previousData) => previousData,
   })
-  const usersQuery = useQuery({
+  const {
+    data: users,
+    error: usersError,
+    isFetching: isFetchingUsers,
+  } = useQuery({
     queryKey: adminQueryKeys.userList(listParams),
     queryFn: getUsers,
     placeholderData: (previousData) => previousData,
   })
-  const filters = useAdminFilters(
-    walletsQuery.data ?? [],
-    usersQuery.data ?? [],
-  )
+  const filters = useAdminFilters(wallets ?? [], users ?? [])
 
-  if (!walletsQuery.data || !usersQuery.data) {
-    if (walletsQuery.error) {
-      return <div>Error: {walletsQuery.error.message}</div>
-    }
-    if (usersQuery.error) {
-      return <div>Error: {usersQuery.error.message}</div>
-    }
-    return <div>Loading...</div>
+  if (walletsError) {
+    return <div>Error: {walletsError.message}</div>
   }
-  const listError = walletsQuery.error ?? usersQuery.error
-  if (listError) {
-    return <div>Error: {listError.message}</div>
+  if (usersError) {
+    return <div>Error: {usersError.message}</div>
+  }
+  if (!wallets || !users) {
+    return <div>Loading...</div>
   }
 
   return (
@@ -49,9 +47,9 @@ export const AdminList = () => {
       </div>
       <AdminFilters
         filters={filters}
-        isFetching={walletsQuery.isFetching || usersQuery.isFetching}
+        isFetching={isFetchingWallets || isFetchingUsers}
       />
-      <AdminTable wallets={filters.visibleWallets} users={usersQuery.data} />
+      <AdminTable wallets={filters.visibleWallets} users={users} />
       {filters.filteredWallets.length > 0 && (
         <AdminPagination
           safePage={filters.safePage}

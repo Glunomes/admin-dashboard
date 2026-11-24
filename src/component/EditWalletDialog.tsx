@@ -63,16 +63,6 @@ export function EditWalletDialog({ wallet, user }: EditWalletDialogProps) {
             submitLabel={updateMutation.isPending ? 'Saving...' : 'Save'}
             onSubmit={(data) => updateMutation.mutate(data)}
           />
-
-          <Dialog.Close asChild>
-            <button
-              type="button"
-              aria-label="Close dialog"
-              className="absolute right-4 top-4 rounded p-1 text-slate-500 hover:bg-slate-100"
-            >
-              ×
-            </button>
-          </Dialog.Close>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

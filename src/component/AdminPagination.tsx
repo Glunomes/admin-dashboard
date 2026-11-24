@@ -11,6 +11,11 @@ export function AdminPagination({
 }: AdminPaginationProps) {
   if (totalPages === 0) return null
 
+  const pageNumbers: number[] = []
+  for (let pageNumber = 1; pageNumber <= totalPages; pageNumber += 1) {
+    pageNumbers.push(pageNumber)
+  }
+
   return (
     <div className="mt-4 flex items-center justify-between">
       <button
@@ -28,13 +33,11 @@ export function AdminPagination({
           onChange={(event) => updatePage(Number(event.target.value))}
           className="rounded-md border border-slate-300 px-2 py-1"
         >
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-            (pageNumber) => (
-              <option key={pageNumber} value={pageNumber}>
-                {pageNumber}
-              </option>
-            ),
-          )}
+          {pageNumbers.map((pageNumber) => (
+            <option key={pageNumber} value={pageNumber}>
+              {pageNumber}
+            </option>
+          ))}
         </select>
         <span>of {totalPages}</span>
       </label>
